@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const bcrypt = require('../utils/bcrypt');
 
 exports.register = async (ctx) => {
   try {
@@ -7,7 +8,7 @@ exports.register = async (ctx) => {
       userName, 
       email, 
       gender: gender || 'male',
-      password,
+      password: await bcrypt.enbcrypt(password),
       avartar: '',
       createTime: new Date().getTime(),
     };
@@ -46,7 +47,8 @@ exports.signIn = async (ctx) => {
         msg: '该用户不存在!',
       }
     }
-    if (password === user.password) {
+    const isPasswordValid = await bcrypt.validate(password, user.password);
+    if (isPasswordValid) {
       ctx.response.body = {
         code: 0,
         msg: '登录成功',
@@ -75,7 +77,6 @@ exports.signUp = async (ctx) => {
 exports.getUserList = async (ctx) => {
   try {
     const users = await User.find();
-    console.log(users);
     ctx.response.body = {
       code: 0,
       msg: '获取成功',
